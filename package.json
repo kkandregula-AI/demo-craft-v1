@@ -1,0 +1,11 @@
+{
+  "name": "demo-craft-ai",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "echo build complete"
+  },
+  "dependencies": {
+    "ffmpeg-static": "^5.2.0"
+  }
+}
