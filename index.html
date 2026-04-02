@@ -1,29 +1,919 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>DemoCraft Fixed</title>
-<style>
-body {
-  margin:0;
-  font-family: Inter, sans-serif;
-  background:#07111f;
-  color:white;
-}
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+  <title>DemoCraft AI</title>
+  <style>
+    :root {
+      --bg: #07111f;
+      --panel: #0d1b2f;
+      --panel-2: #12233d;
+      --border: rgba(255,255,255,0.12);
+      --text: #f3f7ff;
+      --muted: #a9b7d0;
+      --accent: #7fb3ff;
+      --accent-2: #5b8cff;
+      --danger: #ff6b6b;
+      --success: #4fd1a5;
+      --warning: #ffd166;
+      --shadow: 0 12px 40px rgba(0,0,0,0.35);
+      --radius: 18px;
+    }
 
-.caption-overlay {
-  position:absolute;
-  bottom:20px;
-  left:20px;
-  right:20px;
-  background:rgba(0,0,0,0.6);
-  padding:10px 14px;
-  border-radius:10px;
-  font-size:14px;
-}
-</style>
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: Inter, Arial, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(91,140,255,0.18), transparent 26%),
+        radial-gradient(circle at top right, rgba(127,179,255,0.12), transparent 24%),
+        linear-gradient(180deg, #08111d 0%, #07111f 100%);
+      color: var(--text);
+    }
+
+    body { min-height: 100vh; }
+
+    .app-shell {
+      max-width: 1520px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .hero {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .hero h1 {
+      margin: 0 0 8px;
+      font-size: clamp(28px, 4vw, 42px);
+      line-height: 1.05;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 820px;
+      line-height: 1.6;
+    }
+
+    .hero-badge {
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.05);
+      padding: 10px 14px;
+      border-radius: 999px;
+      color: var(--accent);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 300px 420px 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    @media (max-width: 1280px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+    }
+
+    .panel-header h2,
+    .panel-header h3 {
+      margin: 0 0 6px;
+      font-size: 18px;
+    }
+
+    .panel-header p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .panel-body {
+      padding: 18px;
+    }
+
+    .stack {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .field-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .field-grid.two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    @media (max-width: 720px) {
+      .field-grid.two {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    input, select, textarea, button {
+      font: inherit;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 12px 14px;
+      outline: none;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 96px;
+      line-height: 1.45;
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: #8ea0bf;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 11px 16px;
+      cursor: pointer;
+      font-weight: 700;
+      transition: transform 0.12s ease, opacity 0.12s ease, background 0.12s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #06101d;
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-danger {
+      background: rgba(255,107,107,0.12);
+      color: #ffc1c1;
+      border: 1px solid rgba(255,107,107,0.2);
+    }
+
+    .btn-success {
+      background: rgba(79,209,165,0.16);
+      color: #cffff1;
+      border: 1px solid rgba(79,209,165,0.3);
+    }
+
+    .status {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+      min-height: 20px;
+      white-space: pre-wrap;
+    }
+
+    .helper {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+      margin-top: 6px;
+    }
+
+    .section-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 2px 0;
+    }
+
+    .hidden { display: none !important; }
+
+    /* Workflow */
+    .workflow-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .workflow-step {
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 16px;
+      background: rgba(255,255,255,0.04);
+      padding: 14px;
+      transition: 0.18s ease;
+    }
+
+    .workflow-step-title {
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .workflow-step-desc {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .step-active {
+      border-color: rgba(127,179,255,0.9);
+      background: rgba(127,179,255,0.08);
+      animation: pulseStep 1.3s infinite;
+    }
+
+    .step-done {
+      border-color: rgba(79,209,165,0.45);
+      background: rgba(79,209,165,0.08);
+    }
+
+    .step-locked {
+      opacity: 0.48;
+    }
+
+    @keyframes pulseStep {
+      0% { box-shadow: 0 0 0 0 rgba(127,179,255,0.45); }
+      70% { box-shadow: 0 0 0 14px rgba(127,179,255,0); }
+      100% { box-shadow: 0 0 0 0 rgba(127,179,255,0); }
+    }
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.05);
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+    }
+
+    .screen-upload-box {
+      border: 1px dashed rgba(255,255,255,0.18);
+      border-radius: 16px;
+      padding: 16px;
+      background: rgba(255,255,255,0.03);
+    }
+
+    .screen-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .screen-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .screen-image-wrap {
+      background: rgba(255,255,255,0.04);
+      aspect-ratio: 16 / 10;
+      overflow: hidden;
+    }
+
+    .screen-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .screen-meta {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .screen-name {
+      font-size: 12px;
+      color: var(--muted);
+      word-break: break-word;
+    }
+
+    .timeline-topbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .timeline-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .empty-state {
+      border: 1px dashed rgba(255,255,255,0.16);
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+      color: var(--muted);
+      background: rgba(255,255,255,0.03);
+    }
+
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .scene-card {
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      border-radius: 18px;
+      padding: 14px;
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 14px;
+    }
+
+    @media (max-width: 900px) {
+      .scene-card {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .scene-left {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .scene-thumb {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border-radius: 14px;
+      background: #08111f;
+      border: 1px solid rgba(255,255,255,0.08);
+      display: block;
+    }
+
+    .scene-left-actions,
+    .scene-order-actions,
+    .scene-audio-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .scene-right {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .scene-mini-grid {
+      display: grid;
+      grid-template-columns: 86px 140px 120px 1fr;
+      gap: 10px;
+    }
+
+    @media (max-width: 980px) {
+      .scene-mini-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 620px) {
+      .scene-mini-grid { grid-template-columns: 1fr; }
+    }
+
+    .scene-audio-status {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .preview-dialog {
+      width: min(1100px, 96vw);
+      max-width: 1100px;
+      border: 1px solid var(--border);
+      background: #07111f;
+      color: var(--text);
+      border-radius: 20px;
+      padding: 0;
+      box-shadow: var(--shadow);
+    }
+
+    .preview-dialog::backdrop {
+      background: rgba(0,0,0,0.65);
+    }
+
+    .preview-dialog-inner {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .preview-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .preview-canvas-wrap {
+      width: 100%;
+      background: #020813;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    #previewCanvas {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .preview-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+  </style>
 </head>
 <body>
-<canvas id="previewCanvas"></canvas>
+  <div class="app-shell">
+    <div class="hero">
+      <div>
+        <h1>DemoCraft AI</h1>
+        <p>
+          Build product explainer demos with a guided workflow. Define product info,
+          optimize your presentation prompt, upload primary screens, generate storyboard,
+          create narration audio, and export presentation assets.
+        </p>
+      </div>
+      <div class="hero-badge">Guided Storyboard Workflow</div>
+    </div>
+
+    <div class="layout">
+      <!-- Workflow -->
+      <aside class="stack">
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Workflow</h2>
+            <p>Only the current stage flashes. Earlier changes reset dependent stages.</p>
+          </div>
+          <div class="panel-body">
+            <div class="workflow-list">
+              <div class="workflow-step" data-step="productInfo">
+                <div class="workflow-step-title">1. Product Info</div>
+                <div class="workflow-step-desc">Enter app details, audience, style, and video goal.</div>
+              </div>
+              <div class="workflow-step" data-step="prompt">
+                <div class="workflow-step-title">2. Optimize Prompt</div>
+                <div class="workflow-step-desc">Turn your rough idea into a structured presentation prompt.</div>
+              </div>
+              <div class="workflow-step" data-step="screens">
+                <div class="workflow-step-title">3. Upload Screens</div>
+                <div class="workflow-step-desc">Upload 5 to 6 primary screens in the preferred order.</div>
+              </div>
+              <div class="workflow-step" data-step="storyboard">
+                <div class="workflow-step-title">4. Generate Storyboard</div>
+                <div class="workflow-step-desc">Create scenes using hook, problem, solution, flow, value, and CTA.</div>
+              </div>
+              <div class="workflow-step" data-step="audio">
+                <div class="workflow-step-title">5. Generate Audio</div>
+                <div class="workflow-step-desc">Generate scene narration and validate that all scenes have audio.</div>
+              </div>
+              <div class="workflow-step" data-step="export">
+                <div class="workflow-step-title">6. Export</div>
+                <div class="workflow-step-desc">Export video-only WebM and separate narration WAV.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </aside>
+
+      <!-- Form -->
+      <aside class="stack">
+        <section class="panel">
+          <div class="panel-header">
+            <h2>AI & Voice Settings</h2>
+            <p>Use live AI keys or mock mode for look and feel testing.</p>
+          </div>
+          <div class="panel-body stack">
+            <div class="field-grid two">
+              <label>
+                Script Provider
+                <select id="scriptProvider">
+                  <option value="mock">Mock Fallback</option>
+                  <option value="openai">OpenAI</option>
+                  <option value="gemini">Gemini</option>
+                </select>
+              </label>
+
+              <label>
+                Voice Provider
+                <select id="voiceProvider">
+                  <option value="browser">Browser Speech</option>
+                  <option value="elevenlabs">ElevenLabs</option>
+                </select>
+              </label>
+            </div>
+
+            <label>
+              OpenAI API Key
+              <input id="openaiKey" type="password" placeholder="sk-..." />
+            </label>
+
+            <label>
+              Gemini API Key
+              <input id="geminiKey" type="password" placeholder="AIza..." />
+            </label>
+
+            <label>
+              ElevenLabs API Key
+              <input id="elevenlabsKey" type="password" placeholder="Enter ElevenLabs key" />
+            </label>
+
+            <label>
+              ElevenLabs Voice ID
+              <input id="elevenlabsVoiceId" type="text" placeholder="e.g. 21m00Tcm4TlvDq8ikWAM" />
+            </label>
+
+            <div class="button-row">
+              <button id="saveSettingsBtn" class="btn-primary" type="button">Save Settings</button>
+              <button id="clearSettingsBtn" class="btn-secondary" type="button">Clear Settings</button>
+            </div>
+
+            <div id="settingsStatus" class="status"></div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Presentation Setup</h2>
+            <p>Define product info, optimize the prompt, then upload screens.</p>
+          </div>
+          <div class="panel-body stack">
+            <label>
+              Product / App Name
+              <input id="productName" type="text" placeholder="VoiceBridge" />
+            </label>
+
+            <label>
+              Product Summary
+              <textarea id="productDescription" placeholder="One-line value proposition"></textarea>
+            </label>
+
+            <div class="field-grid two">
+              <label>
+                Target Audience
+                <input id="targetAudience" type="text" placeholder="Travelers, businesses, judges" />
+              </label>
+
+              <label>
+                Presentation Type
+                <select id="presentationType">
+                  <option>Product Demo</option>
+                  <option>Marketing Ad</option>
+                  <option>Investor Pitch</option>
+                  <option>Explainer Video</option>
+                  <option>Feature Walkthrough</option>
+                  <option>Launch Video</option>
+                  <option>Tutorial / How it Works</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="field-grid two">
+              <label>
+                Tone
+                <input id="tone" type="text" placeholder="Premium, modern, launch-ready" />
+              </label>
+
+              <label>
+                Video Goal
+                <input id="videoGoal" type="text" placeholder="45-second product marketing demo" />
+              </label>
+            </div>
+
+            <label>
+              CTA
+              <input id="cta" type="text" placeholder="Try VoiceBridge today" />
+            </label>
+
+            <label>
+              Key Features (one per line)
+              <textarea id="keyFeatures" placeholder="Real-time translation&#10;Natural voice playback&#10;Conversation history"></textarea>
+            </label>
+
+            <label>
+              User Prompt / Raw Presentation Request
+              <textarea id="buildPrompt" placeholder="I want a sharp launch-style demo that opens with the problem, shows the app flow screen by screen, and ends with a strong CTA."></textarea>
+            </label>
+
+            <div class="button-row">
+              <button id="loadSampleBtn" class="btn-secondary" type="button">Load Sample</button>
+              <button id="optimizePromptBtn" class="btn-primary" type="button">Optimize Prompt</button>
+            </div>
+
+            <label>
+              Optimized Prompt
+              <textarea id="optimizedPrompt" placeholder="Optimized prompt will appear here..." readonly></textarea>
+            </label>
+
+            <div class="section-divider"></div>
+
+            <div class="screen-upload-box">
+              <label>
+                Upload 5 to 6 Primary Screens
+                <input id="screenshots" type="file" accept="image/*" multiple />
+              </label>
+              <div class="helper">
+                Upload after prompt optimization. The uploaded screen order helps storyboard mapping.
+              </div>
+              <div id="screenGrid" class="screen-grid"></div>
+            </div>
+
+            <div class="button-row">
+              <button id="generateBtn" class="btn-primary" type="button">Generate Storyboard</button>
+              <button id="generateAllAudioBtn" class="btn-secondary" type="button">Generate All Audio</button>
+              <button id="validateAudioBtn" class="btn-secondary" type="button">Validate Audio</button>
+            </div>
+
+            <div id="generateStatus" class="status"></div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Export</h2>
+            <p>Export video-only WebM and separate narration WAV.</p>
+          </div>
+          <div class="panel-body stack">
+            <div class="field-grid two">
+              <label>
+                Video Resolution
+                <select id="videoResolution">
+                  <option value="1280x720">1280 × 720</option>
+                  <option value="1920x1080">1920 × 1080</option>
+                  <option value="1080x1920">1080 × 1920</option>
+                </select>
+              </label>
+
+              <label>
+                FPS
+                <select id="videoFps">
+                  <option value="24">24</option>
+                  <option value="30" selected>30</option>
+                  <option value="60">60</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="field-grid two">
+              <label>
+                Default Duration (sec)
+                <input id="defaultDuration" type="number" min="2" max="15" step="1" value="5" />
+              </label>
+
+              <label>
+                Transition Duration (sec)
+                <input id="transitionDuration" type="number" min="0" max="3" step="0.1" value="0.6" />
+              </label>
+            </div>
+
+            <label>
+              Caption Style
+              <select id="captionStyle">
+                <option value="bottom">Bottom</option>
+                <option value="middle">Middle</option>
+                <option value="top">Top</option>
+              </select>
+              <span class="helper">Voice-over now renders in a protected caption box so it does not collide with bullet text.</span>
+            </label>
+
+            <div class="chip-row">
+              <div class="chip">Export 1: video-only WebM</div>
+              <div class="chip">Export 2: narration WAV</div>
+            </div>
+
+            <div class="button-row">
+              <button id="previewBtn" class="btn-secondary" type="button">Preview</button>
+              <button id="exportProjectBtn" class="btn-secondary" type="button">Export Project JSON</button>
+              <button id="exportVideoBtn" class="btn-primary" type="button">Export Assets</button>
+            </div>
+
+            <div id="exportStatus" class="status"></div>
+          </div>
+        </section>
+      </aside>
+
+      <!-- Timeline -->
+      <main class="stack">
+        <section class="panel">
+          <div class="panel-header timeline-topbar">
+            <div>
+              <h2>Timeline Editor</h2>
+              <p>Edit scenes, assign screens, generate audio, preview, and export assets.</p>
+            </div>
+            <div class="timeline-actions">
+              <button id="addSceneBtn" class="btn-secondary" type="button">Add Scene</button>
+              <button id="regenerateThumbsBtn" class="btn-secondary" type="button">Refresh Thumbnails</button>
+            </div>
+          </div>
+
+          <div class="panel-body">
+            <div id="emptyState" class="empty-state">
+              No scenes yet. Complete the workflow and generate a storyboard.
+            </div>
+            <div id="timeline" class="timeline"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <dialog id="previewDialog" class="preview-dialog">
+    <div class="preview-dialog-inner">
+      <div class="preview-top">
+        <div>
+          <h3 style="margin:0 0 6px;">Preview</h3>
+          <div style="color:var(--muted);font-size:14px;">Play through your product demo scenes.</div>
+        </div>
+        <div class="preview-actions">
+          <button id="prevSceneBtn" class="btn-secondary" type="button">Previous</button>
+          <button id="playTimelineBtn" class="btn-secondary" type="button">Play Timeline</button>
+          <button id="nextSceneBtn" class="btn-secondary" type="button">Next</button>
+          <button id="closePreviewBtn" class="btn-danger" type="button">Close</button>
+        </div>
+      </div>
+
+      <div class="preview-canvas-wrap">
+        <canvas id="previewCanvas" width="1280" height="720"></canvas>
+      </div>
+    </div>
+  </dialog>
+
+  <template id="screenTemplate">
+    <article class="screen-card">
+      <div class="screen-image-wrap">
+        <img class="screen-image" alt="" />
+      </div>
+      <div class="screen-meta">
+        <div class="screen-name"></div>
+        <label>
+          Screen Label
+          <input class="screen-label" type="text" placeholder="Home Screen" />
+        </label>
+        <label>
+          Notes
+          <textarea class="screen-notes" placeholder="Optional mapping notes"></textarea>
+        </label>
+        <button class="screen-remove btn-danger" type="button">Remove Screen</button>
+      </div>
+    </article>
+  </template>
+
+  <template id="sceneTemplate">
+    <article class="scene-card">
+      <div class="scene-left">
+        <canvas class="scene-thumb" width="320" height="180"></canvas>
+
+        <div class="scene-left-actions">
+          <button class="scene-preview btn-secondary" type="button">Preview Scene</button>
+          <button class="scene-play-audio btn-secondary" type="button">Play Audio</button>
+        </div>
+
+        <div class="scene-order-actions">
+          <button class="scene-up btn-secondary" type="button">Move Up</button>
+          <button class="scene-down btn-secondary" type="button">Move Down</button>
+          <button class="scene-duplicate btn-secondary" type="button">Duplicate</button>
+          <button class="scene-delete btn-danger" type="button">Delete</button>
+        </div>
+
+        <div class="scene-audio-actions">
+          <button class="scene-generate-audio btn-primary" type="button">Generate Audio</button>
+          <button class="scene-clear-audio btn-secondary" type="button">Clear Audio</button>
+        </div>
+
+        <div class="scene-audio-status"></div>
+        <audio class="scene-audio" controls preload="none" style="width:100%;"></audio>
+      </div>
+
+      <div class="scene-right">
+        <div class="scene-mini-grid">
+          <label>
+            Scene #
+            <input class="scene-index" type="text" readonly />
+          </label>
+
+          <label>
+            Type
+            <select class="scene-type">
+              <option value="hook">Hook</option>
+              <option value="problem">Problem</option>
+              <option value="solution">Solution</option>
+              <option value="screen">Screen</option>
+              <option value="feature">Feature</option>
+              <option value="cta">CTA</option>
+            </select>
+          </label>
+
+          <label>
+            Duration
+            <input class="scene-duration" type="number" min="2" max="15" step="1" />
+          </label>
+
+          <label>
+            Assigned Screen
+            <select class="scene-image"></select>
+          </label>
+        </div>
+
+        <label>
+          Scene Title
+          <input class="scene-title" type="text" placeholder="Scene title" />
+        </label>
+
+        <label>
+          Voiceover
+          <textarea class="scene-voiceover" placeholder="Narration for this scene"></textarea>
+        </label>
+
+        <label>
+          Bullets (one per line)
+          <textarea class="scene-bullets" placeholder="Short on-screen bullets"></textarea>
+        </label>
+
+        <label>
+          Visual Direction
+          <textarea class="scene-visual" placeholder="How this scene should appear visually"></textarea>
+        </label>
+      </div>
+    </article>
+  </template>
+
+  <script type="module" src="./app.js"></script>
 </body>
 </html>
